@@ -1,10 +1,10 @@
 import json
 
-from langchain_community.llms import OpenAI, OpenAIChat
+from langchain.llms import OpenAI, OpenAIChat
 import os
 
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Milvus
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import Milvus
 from pymilvus import connections, Collection, utility
 # 打印所有集合的名称
 
