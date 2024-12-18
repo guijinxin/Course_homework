@@ -10,12 +10,12 @@ connections.connect(host="10.58.0.2", port="19530")
 fields = [
     FieldSchema(name="id", dtype=DataType.VARCHAR, max_length=50, is_primary=True),  # 论文的唯一标识符
     FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=384),  # 向量维度（与嵌入模型匹配）
-    FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=500),  # 论文标题
-    FieldSchema(name="authors", dtype=DataType.VARCHAR, max_length=500),  # 论文作者
-    FieldSchema(name="categories", dtype=DataType.VARCHAR, max_length=200),  # 论文分类
-    FieldSchema(name="doi", dtype=DataType.VARCHAR, max_length=200),  # 论文 DOI
-    FieldSchema(name="journal_ref", dtype=DataType.VARCHAR, max_length=500),  # 期刊引用
-    FieldSchema(name="comments", dtype=DataType.VARCHAR, max_length=500),  # 论文评论
+    #FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=500),  # 论文标题
+    #FieldSchema(name="authors", dtype=DataType.VARCHAR, max_length=500),  # 论文作者
+    #FieldSchema(name="categories", dtype=DataType.VARCHAR, max_length=200),  # 论文分类
+    #FieldSchema(name="doi", dtype=DataType.VARCHAR, max_length=200),  # 论文 DOI
+    #FieldSchema(name="journal_ref", dtype=DataType.VARCHAR, max_length=500),  # 期刊引用
+    #FieldSchema(name="comments", dtype=DataType.VARCHAR, max_length=500),  # 论文评论
     FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=5000),  # 论文摘要（必须命名为 text）
 ]
 
@@ -33,62 +33,76 @@ else:
     print(f"集合 {collection_name} 已删除！")
     collection = Collection(name=collection_name, schema=schema)
     print(f"集合 {collection_name} 创建成功！")
-os.environ["http_proxy"] = "http://127.0.0.1:7897"
-os.environ["https_proxy"] = "http://127.0.0.1:7897"
+#os.environ["http_proxy"] = "http://127.0.0.1"
+#os.environ["https_proxy"] = "http://127.0.0.1"
 # 4. 加载嵌入模型
 embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L12-v2")
 
 # 5. 加载 arXiv 数据集
-with open("arxiv-metadata-oai-snapshot.json", "r") as read_file:
+with open("/home/gjx/.cache/kagglehub/datasets/Cornell-University/arxiv/versions/210/arxiv-metadata-oai-snapshot.json", "r") as read_file:
     data = [json.loads(line) for line in read_file]
-    data = json.load(read_file)
+    #data = json.load(read_file)
     batch_size = 10000
     records = []
     for item in data:
         abstract = item.get("abstract", "unknown")  # 论文摘要
-        if len(abstract) > 5000:
+        if abstract is None:
+            abstract = "unknown"
+        elif len(abstract) > 5000:
             print(f"Abstract length exceeds 5000 characters: {len(abstract)}")
             abstract = abstract[:5000]  # 截断到最大长度
 
-        title = item.get("title", "unknown")
-        if len(title) > 500:
-            print(f"Title length exceeds 500 characters: {len(title)}")
-            title = title[:500]  # 截断到最大长度
+        # title = item.get("title", "unknown")
+        # if title is None:
+        #     title = "unknown"
+        # elif len(title) > 500:
+        #     print(f"Title length exceeds 500 characters: {len(title)}")
+        #     title = title[:500]  # 截断到最大长度
 
-        authors = item.get("authors", "unknown")
-        if len(authors) > 500:
-            print(f"Authors length exceeds 500 characters: {len(authors)}")
-            authors = authors[:500]  # 截断到最大长度
+        # authors = item.get("authors", "unknown")
+        # if authors is None:
+        #     authors = "unknown"
+        # elif len(authors) > 500:
+        #     print(f"Authors length exceeds 500 characters: {len(authors)}")
+        #     authors = authors[:500]  # 截断到最大长度
 
-        category_list = item.get("categories", "N/A")
-        if len(category_list) > 200:
-            print(f"Categories length exceeds 200 characters: {len(category_list)}")
-            category_list = category_list[:200]  # 截断到最大长度
+        # categories = item.get("categories", "unknown")
+        # if categories is None:
+        #     categories = "unknown"
+        # elif len(categories) > 200:
+        #     print(f"Categories length exceeds 200 characters: {len(categories)}")
+        #     categories = categories[:200]  # 截断到最大长度
 
-        doi = item.get("doi", "N/A")
-        if len(doi) > 200:
-            print(f"DOI length exceeds 200 characters: {len(doi)}")
-            doi = doi[:200]  # 截断到最大长度
+        # doi = item.get("doi", "unknown")
+        # if doi is None:
+        #     doi = "unknown"
+        # elif len(doi) > 200:
+        #     print(f"DOI length exceeds 200 characters: {len(doi)}")
+        #     doi = doi[:200]  # 截断到最大长度
 
-        journal_ref = item.get("journal-ref", "N/A")
-        if len(journal_ref) > 500:
-            print(f"Journal Ref length exceeds 500 characters: {len(journal_ref)}")
-            journal_ref = journal_ref[:500]  # 截断到最大长度
+        # journal_ref = item.get("journal-ref", "unknown")
+        # if journal_ref is None:
+        #     journal_ref = "unknown"
+        # elif len(journal_ref) > 500:
+        #     print(f"Journal Ref length exceeds 500 characters: {len(journal_ref)}")
+        #     journal_ref = journal_ref[:500]  # 截断到最大长度
 
-        comments = item.get("comments", "N/A")
-        if len(comments) > 500:
-            print(f"Comments length exceeds 500 characters: {len(comments)}")
-            comments = comments[:500]  # 截断到最大长度
+        # comments = item.get("comments", "unknown")
+        # if comments is None:
+        #     comments = "unknown"
+        # elif len(comments) > 500:
+        #     print(f"Comments length exceeds 500 characters: {len(comments)}")
+        #     comments = comments[:500]  # 截断到最大长度
         vector = embedding_model.encode(abstract).tolist()  # 生成向量
         record = {
-            "id": item.get("id", "N/A"),
+            "id": item.get("id", "unknown"),
             "vector": vector,
-            "title": title,
-            "authors": authors,
-            "categories": category_list,
-            "doi": doi,
-            "journal_ref": journal_ref,
-            "comments": comments,
+            # "title": title,
+            # "authors": authors,
+            # "categories": categories,
+            # "doi": doi,
+            # "journal_ref": journal_ref,
+            # "comments": comments,
             "text": abstract,
         }
         records.append(record)
