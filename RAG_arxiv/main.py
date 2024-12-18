@@ -103,5 +103,5 @@ def main():
 #     main()
 if __name__ == "__main__":
     question_path = "/home/gjx/Course_homwork/RAG_arxiv/questions.jsonl"
-    answer_path = "/home/gjx/Course_homwork/RAG_arxiv"
+    answer_path = "/home/gjx/Course_homwork/RAG_arxiv/answer.json"
     answer_question(question_path, answer_path)
