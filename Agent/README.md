@@ -1,3 +1,8 @@
+## 实现方案
+
+### 安装&import 依赖
+
+```python
 import json
 import sys
 from typing import List, Optional, Dict, Any, Tuple, Union
@@ -19,9 +24,13 @@ import tiktoken
 
 
 import os
-os.environ["OPENAI_API_KEY"] = "sk-EywWhDnM3GZRGqRHEpRhOklP2DoLuARx6veozvOonMMiDhpI" #注：该key属于本人使用的大模型key，麻烦仅用于检查作业使用
-os.environ["OPENAI_API_BASE"] = "https://api.chatanywhere.tech/v1"
+```
 
+### 定义tools
+
++ tools函数均由大模型生成
+
+```python
 # 模拟课程数据
 courses = [
     {"id": 1, "name": "Introduction to Computer Science", "type": "必修", "description": "基础计算机科学课程"},
@@ -142,12 +151,15 @@ finish_placeholder = StructuredTool.from_function(
 )
 
 tools = [query_courses_tool,select_course_tool, delete_course_tool, list_selected_courses_tool, finish_placeholder]
+```
 
+### Prompt
+
+任务prompt和最终prompt
+
+```python
 prompt_text = """
-你是强大的选课助手，可以使用工具与指令查询、选课和删除，功能如下所示：
-1. 查询：带有筛选的查询，可以筛选必修或选修。
-2. 选课：选择需要的课程，智能返回结果。成功返回选课结果，未成功返回错误。
-3. 删除：删除选择的课程，智能返回结果
+你是强大的AI火车票助手，可以使用工具与指令查询并购买火车票
 
 你的任务是:
 {task_description}
@@ -178,6 +190,11 @@ final_prompt = """
 直接给出答案。不用再解释或分析你的思考过程。
 """
 
+```
+
+### 一些工具类
+
+```python
 class Action(BaseModel):
     """结构化定义工具的属性"""
     name: str = Field(description="工具或指令名称")
@@ -218,7 +235,11 @@ class ChatOpenAIIn05(ChatOpenAI):
         # Set the model to a valid one to avoid errors
         model = "gpt-3.5-turbo"
         return model, tiktoken.encoding_for_model(model)
+```
 
+### Agent定义
+
+```python
 class MyAgent:
     def __init__(
             self,
@@ -354,6 +375,12 @@ class MyAgent:
                 except:
                     pass
         return '\n'.join(lines)
+
+```
+
+### 测试
+
+```python
 if __name__ == "__main__":
     my_agent = MyAgent(
         tools=tools,
@@ -364,49 +391,9 @@ if __name__ == "__main__":
     task = "选择羽毛球课"
     reply = my_agent.run(task)
     print(reply)
+```
 
-def main():
-    print("欢迎使用选课系统！请输入您的指令（例如：查询所有必修课程，选修羽毛球课程）：")
-    
-    while True:
-        user_input = input("\n请输入您的指令: ")
-        
-        if user_input.lower() in ["退出", "exit", "quit"]:
-            print("感谢使用选课系统，再见！")
-            break
-        
-        # 调用 Qwen-Agent 解析用户输入
-        response = call_qwen_agent(user_input)
-        
-        # 解析意图和参数
-        intent = response.get("intent", "")  # 例如："查询课程"、"选课"、"删除课程"
-        params = response.get("params", {})  # 例如：{"course_type": "必修", "keyword": "羽毛球"}
-        
-        if intent == "查询课程":
-            course_type = params.get("course_type")
-            keyword = params.get("keyword")
-            result = query_courses(course_type, keyword)
-            print("\n查询结果:")
-            for course in result:
-                print(f"{course['id']}: {course['name']} - {course['type']} - {course['description']}")
-        
-        elif intent == "选课":
-            course_name = params.get("course_name")
-            result = select_course(course_name)
-            print(result)
-        
-        elif intent == "删除课程":
-            course_name = params.get("course_name")
-            result = delete_course(course_name)
-            print(result)
-        
-        elif intent == "查看已选课程":
-            print("\n已选课程:")
-            for course in list_selected_courses():
-                print(f"{course['id']}: {course['name']} - {course['type']} - {course['description']}")
-        
-        else:
-            print("抱歉，我没有理解您的指令，请重新输入。")
+### 输出结果
 
-# if __name__ == "__main__":
-#     main()
+![image-20241219205832082](./image.png)
+
