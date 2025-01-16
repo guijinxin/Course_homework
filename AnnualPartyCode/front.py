@@ -68,6 +68,7 @@ if option == "随机分组":
             # 开始分组
             with st.spinner("正在分组，请稍候..."):
                 students = participants_df['Student'].dropna().tolist()  # 学生列，去除空值
+                students = list(set(students) - excluded_students)  # 去除蓝源泓、余欣然
                 teachers = participants_df['Teacher'].dropna().tolist()  # 老师列，去除空值
                 time.sleep(2)  # 模拟加载过程
                 # 打乱顺序
@@ -85,10 +86,13 @@ if option == "随机分组":
                 # 分配学生
                 student_index = 0
                 for group in groups:
-                    needed = len(students) // num_groups
-                    group.extend(students[student_index:student_index + needed])
+                    needed = (len(students)+len(teachers)) // num_groups
+                    group.extend(students[student_index:student_index + needed - len(group)])
                     student_index += needed
-
+                # 随机分配剩余学生
+                for i in range(student_index, len(students)):
+                    group_index = i % num_groups
+                    groups[group_index].append(students[i])
                 # 保存分组结果到 Session State
                 st.session_state.groups = groups
                 # 显示分组结果
