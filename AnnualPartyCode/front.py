@@ -53,7 +53,19 @@ if option == "随机分组":
         # 输入分组数量
         num_groups = st.number_input("分组数量", min_value=1, value=4, step=1)
 
+        placeholder_list = []
+        if 'groups' in st.session_state:
+            for i, group in enumerate(st.session_state.groups):
+                placeholder_list.append(st.empty())
+                placeholder_list[i].write(f"**Group {i + 1}** ({len(group)}人): {', '. join (group)}")
         if st.button("开始分组"):
+            # 删除之前显示的分组结果内容
+            if 'groups' in st.session_state:
+                del st.session_state['groups']
+                for i in range(num_groups):
+                    placeholder_list[i].empty()
+                placeholder_list = []
+            # 开始分组
             with st.spinner("正在分组，请稍候..."):
                 students = participants_df['Student'].dropna().tolist()  # 学生列，去除空值
                 teachers = participants_df['Teacher'].dropna().tolist()  # 老师列，去除空值
@@ -77,11 +89,16 @@ if option == "随机分组":
                     group.extend(students[student_index:student_index + needed])
                     student_index += needed
 
+                # 保存分组结果到 Session State
+                st.session_state.groups = groups
                 # 显示分组结果
                 st.success("分组完成！")
                 st.balloons()  # 增加气球动画
                 for i, group in enumerate(groups):
                     st.write(f"**Group {i + 1}** ({len(group)}人): {', '.join(group)}")
+
+
+
 
 # 抽奖功能
 elif option == "抽奖":
@@ -130,8 +147,11 @@ elif option == "抽奖":
         prize_class = {"一等奖": ["CHERRY 机械键盘", "智能电动牙刷"], "二等奖": ["四口140W快充", "飞利浦筋膜枪"], "三等奖": ["美的加湿器", "罗技静音鼠标", "思莱宜坐垫"]}
         prize_set = prize_class[prize_level]
         prize_name = st.selectbox("选择奖品", prize_set)
-        prize_num = st.number_input("奖品数量", min_value=1, value=1, step=1)
+        prize_num_map = {"CHERRY 机械键盘": 1, "智能电动牙刷": 3, "四口140W快充": 2, "飞利浦筋膜枪": 3, "美的加湿器": 3, "罗技静音鼠标": 4, "思莱宜坐垫": 4}
+        prize_num = st.number_input("奖品数量", min_value=1, value=prize_num_map[prize_name], step=1)
 
+        seed = st.number_input("设置随机种子", min_value=0, value=0, step=1)
+        random.seed(seed)
         if st.button("开始抽奖"):
             with st.spinner("正在抽奖，请稍候..."):
                 time.sleep(2)  # 模拟加载过程
@@ -170,14 +190,17 @@ elif option == "抽奖":
                     # 模拟抽奖过程
                     st.write("抽奖中...")
                     for i in range(3, 0, -1):  # 倒计时 3、2、1
-                        st.write(f"🎉 倒计时: {i} 🎉")
+                        st.markdown(f"<h1 style='text-align: center; color: #FF5733;'>🎉 倒计时: {i} 🎉</h1>", unsafe_allow_html=True)
                         time.sleep(1)  # 每秒显示一次
 
                     # 模拟名单滚动效果
                     placeholder = st.empty()  # 创建一个占位符
                     for _ in range(20):  # 滚动 20 次
                         random_name = random.choice(remaining_participants)
-                        placeholder.write(f"**{random_name}**")
+                        placeholder.markdown(
+                            f"<h2 style='text-align: center; color: #4CAF50;'>🎉 **{random_name}** 🎉</h2>",
+                            unsafe_allow_html=True
+                        )
                         time.sleep(0.1)  # 控制滚动速度
                     placeholder.empty()  # 清空占位符
 
@@ -185,10 +208,17 @@ elif option == "抽奖":
                         placeholder = st.empty()
                         for _ in range(20):  # 滚动 20 次
                             random_name = random.choice(remaining_participants)
-                            placeholder.write(f"**{random_name}**")
+                            placeholder.markdown(
+                                f"<h2 style='text-align: center; color: #4CAF50;'>🎉 **{random_name}** 🎉</h2>",
+                                unsafe_allow_html=True
+                            )
                             time.sleep(0.1)  # 控制滚动速度
                         placeholder.empty()  # 清空占位符
-                        st.write(f"🎉 **{prize_level} 第 {i + 1} 位中奖者**: {winner} 🎉")
+                        st.markdown(
+                            f"<h2 style='text-align: center; color: #4CAF50;'>🎉 **{prize_level}{prize_name} 第 {i + 1} 位中奖者**: {winner} 🎉</h2>",
+                            unsafe_allow_html=True
+                        )
+                    time.sleep(0.5)
                     # 逐个显示中奖者
                     st.success("抽奖完成！")
                     st.balloons()  # 增加气球动画
