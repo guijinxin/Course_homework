@@ -87,8 +87,9 @@ if option == "随机分组":
                 student_index = 0
                 for group in groups:
                     needed = (len(students)+len(teachers)) // num_groups
-                    group.extend(students[student_index:student_index + needed - len(group)])
-                    student_index += needed
+                    lenOfGroup = len(group)
+                    group.extend(students[student_index:student_index + needed - lenOfGroup])
+                    student_index += needed - lenOfGroup
                 # 随机分配剩余学生
                 for i in range(student_index, len(students)):
                     group_index = i % num_groups
